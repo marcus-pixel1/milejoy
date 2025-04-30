@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨境电商物流分析仪表板</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@latest/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary-color: #10B981;
+            --accent-color: #F59E0B;
+            --danger-color: #EF4444;
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --text-tertiary: #9CA3AF;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F3F4F6;
+            --bg-tertiary: #E5E7EB;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark {
+            --primary-color: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary-color: #10B981;
+            --accent-color: #F59E0B;
+            --danger-color: #EF4444;
+            --text-primary: #F9FAFB;
+            --text-secondary: #E5E7EB;
+            --text-tertiary: #9CA3AF;
+            --bg-primary: #111827;
+            --bg-secondary: #1F2937;
+            --bg-tertiary: #374151;
+            --card-bg: #1F2937;
+            --border-color: #374151;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: "Noto Sans SC", Tahoma, Arial, Roboto, "Droid Sans", "Helvetica Neue", "Droid Sans Fallback", "Heiti SC", "Hiragino Sans GB", Simsun, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .font-serif {
+            font-family: "Noto Serif SC", serif;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sparkline-chart {
+            height: 40px;
+            width: 100%;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover td {
+            background-color: var(--bg-secondary);
+        }
+
+        .alert-value {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        .good-value {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .warning-value {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            padding: 1.25rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-card.alert {
+            border-left-color: var(--danger-color);
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--accent-color);
+        }
+
+        .metric-card.success {
+            border-left-color: var(--secondary-color);
+        }
+
+        .toggle-theme {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+
+        .filter-section {
+            background-color: var(--bg-secondary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        select, input {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-value {
+            height: 100%;
+            border-radius: 4px;
+            background-color: var(--primary-color);
+        }
+        
+        .progress-value.danger {
+            background-color: var(--danger-color);
+        }
+        
+        .progress-value.warning {
+            background-color: var(--accent-color);
+        }
+        
+        .progress-value.success {
+            background-color: var(--secondary-color);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .flex-col-mobile {
+                flex-direction: column;
+            }
+            
+            .w-full-mobile {
+                width: 100%;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- 顶部导航栏 -->
+        <header class="bg-primary-600 py-4 px-6 flex justify-between items-center shadow-md" style="background-color: var(--primary-color);">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-ship text-white text-2xl"></i>
+                <h1 class="text-xl font-bold text-white">跨境电商物流分析中心</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-white flex items-center">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    <span id="current-date">2023年9月</span>
+                </div>
+                <button class="toggle-theme text-white">
+                    <i class="fas fa-moon dark-icon"></i>
+                    <i class="fas fa-sun light-icon hidden"></i>
+                </button>
+                <div class="relative">
+                    <button class="flex items-center text-white">
+                        <i class="fas fa-user-circle text-xl mr-2"></i>
+                        <span>物流负责人</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="flex-1 p-6">
+            <!-- 顶部概览卡片 -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-serif font-semibold mb-4 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-2 text-primary-500" style="color: var(--primary-color);"></i>
+                    核心指标概览
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 metric-grid">
+                    <div class="metric-card alert">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500" style="color: var(--text-tertiary);">单票物流成本率</p>
+                                <p class="text-2xl font-bold mt-1 alert-value">17.8%</p>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full alert-value bg-opacity-10 font-medium" style="background-color: rgba(239, 68, 68, 0.1);">
+                                <i class="fas fa-arrow-up"></i> 2.3%
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span style="color: var(--text-secondary);">目标: 15.5%</span>
+                                <span style="color: var(--text-secondary);">同行均值: 16.2%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-value danger" style="width: 87%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card success">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500" style="color: var(--text-tertiary);">平均妥投时效</p>
+                                <p class="text-2xl font-bold mt-1 good-value">6.2 天</p>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full good-value bg-opacity-10 font-medium" style="background-color: rgba(16, 185, 129, 0.1);">
+                                <i class="fas fa-arrow-down"></i> 0.8天
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span style="color: var(--text-secondary);">目标: 7天</span>
+                                <span style="color: var(--text-secondary);">同行均值: 7.5天</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-value success" style="width: 92%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card warning">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500" style="color: var(--text-tertiary);">海外仓周转天数</p>
+                                <p class="text-2xl font-bold mt-1 warning-value">38.5 天</p>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full warning-value bg-opacity-10 font-medium" style="background-color: rgba(245, 158, 11, 0.1);">
+                                <i class="fas fa-arrow-up"></i> 4.2天
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span style="color: var(--text-secondary);">目标: 30天</span>
+                                <span style="color: var(--text-secondary);">同行均值: 35天</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-value warning" style="width: 72%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500" style="color: var(--text-tertiary);">异常签收率</p>
+                                <p class="text-2xl font-bold mt-1" style="color: var(--text-primary);">1.8%</p>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full good-value bg-opacity-10 font-medium" style="background-color: rgba(16, 185, 129, 0.1);">
+                                <i class="fas fa-arrow-down"></i> 0.3%
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span style="color: var(--text-secondary);">目标: 2%</span>
+                                <span style="color: var(--text-secondary);">同行均值: 2.3%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-value" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 过滤和选择区域 -->
+            <div class="filter-section mb-6">
+                <div class="flex flex-wrap gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">项目</label>
+                        <select class="w-full md:w-40">
+                            <option value="all">所有项目</option>
+                            <option value="tesla">特斯拉项目</option>
+                            <option value="medical">诊断设备项目</option>
+                            <option value="amazon">亚马逊项目</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">国家/地区</label>
+                        <select class="w-full md:w-40">
+                            <option value="all">所有国家</option>
+                            <option value="us">美国</option>
+                            <option value="de">德国</option>
+                            <option value="uk">英国</option>
+                            <option value="ca">加拿大</option>
+                            <option value="au">澳大利亚</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">时间范围</label>
+                        <select class="w-full md:w-40">
+                            <option value="last3m">近3个月</option>
+                            <option value="last6m" selected>近6个月</option>
+                            <option value="lasty">近1年</option>
+                            <option value="custom">自定义...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">渠道类型</label>
+                        <select class="w-full md:w-40">
+                            <option value="all">所有渠道</option>
+                            <option value="express">快递</option>
+                            <option value="line">专线</option>
+                            <option value="sea">海运</option>
+                            <option value="air">空运</option>
+                        </select>
+                    </div>
+                    <div class="ml-auto">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-search mr-1"></i> 应用筛选
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 标签页导航 -->
+            <div class="flex border-b mb-6 overflow-x-auto" style="border-color: var(--border-color);">
+                <button class="tab-button active" data-tab="cost-analysis">
+                    <i class="fas fa-chart-pie mr-2"></i>成本对比分析
+                </button>
+                <button class="tab-button" data-tab="project-breakdown">
+                    <i class="fas fa-project-diagram mr-2"></i>项目明细拆解
+                </button>
+                <button class="tab-button" data-tab="anomaly-monitoring">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>异常监控
+                </button>
+                <button class="tab-button" data-tab="optimization">
+                    <i class="fas fa-lightbulb mr-2"></i>优化建议
+                </button>
+            </div>
+
+            <!-- 标签页内容 -->
+            <div id="cost-analysis" class="tab-content active">
+                <!-- 成本结构图 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="card p-4 lg:col-span-2">
+                        <h3 class="text-lg font-semibold mb-3">物流成本结构桑基图</h3>
+                        <p class="text-sm mb-4" style="color: var(--text-secondary);">展示各项目物流费用流向（头程→运输→尾程→附加费）</p>
+                        <div class="chart-container" id="cost-sankey-chart">
+                            <div class="mermaid">
+                                %%{init: {'theme':'neutral', 'themeVariables': { 'fontSize': '16px'}}}%%
+                                sankey-beta
+                                特斯拉项目[35%] --> 头程运输[18%]
+                                特斯拉项目 --> 仓储费用[8%]
+                                特斯拉项目 --> 尾程派送[9%]
+                                诊断设备项目[25%] --> 头程运输
+                                诊断设备项目 --> 尾程派送[13%]
+                                诊断设备项目 --> 清关费用[4%]
+                                亚马逊项目[40%] --> FBA仓储费[12%]
+                                亚马逊项目 --> 头程运输
+                                亚马逊项目 --> FBA派送费[16%]
+                                头程运输 --> 海运[12%]
+                                头程运输 --> 空运[11%]
+                                头程运输 --> 陆运[3%]
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h3 class="text-lg font-semibold mb-3">物流成本敏感度分析</h3>
+                        <p class="text-sm mb-4" style="color: var(--text-secondary);">各环节成本降低10%对总成本的影响</p>
+                        <canvas id="sensitivity-chart" height="250"></canvas>
+                        <div class="flex flex-wrap mt-4 justify-center">
+                            <div class="legend-item">
+                                <span class="dot" style="background-color: #3B82F6;"></span>
+                                <span class="text-sm">总成本影响</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot" style="background-color: #10B981;"></span>
+                                <span class="text-sm">实施难度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 对比图表和表格 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="card p-4">
+                        <h3 class="text-lg font-semibold mb-3">各渠道单公斤运费对比</h3>
+                        <canvas id="cost-comparison-chart" height="250"></canvas>
+                        <div class="flex flex-wrap mt-4 justify-center">
+                            <div class="legend-item">
+                                <span class="dot" style="background-color: #3B82F6;"></span>
+                                <span class="text-sm">快递</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot" style="background-color: #10B981;"></span>
+                                <span class="text-sm">专线</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot" style="background-color: #F59E0B;"></span>
+                                <span class="text-sm">FBA</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h3 class="text-lg font-semibold mb-3">物流时效与质量矩阵</h3>
+                        <canvas id="delivery-quality-chart" height="250"></canvas>
+                        <p class="text-sm text-center mt-3" style="color: var(--text-secondary);">
+                            气泡大小代表渠道使用量，右下角为最优区域（高时效低异常）
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 仓储与周转 -->
+                <div class="card p-4 mb-8">
+                    <h3 class="text-lg font-semibold mb-3">仓储成本与周转天数关系</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <canvas id="inventory-correlation-chart" height="250"></canvas>
+                            <p class="text-sm text-center mt-2" style="color: var(--text-secondary);">
+                                散点图显示库存周转天数与仓储费用的关系，每个点代表一个SKU
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-2">海外仓周转分析</h4>
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th>项目</th>
+                                        <th>平均周转天数</th>
+                                        <th>月度仓储费</th>
+                                        <th>超长库存占比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>特斯拉项目</td>
+                                        <td class="warning-value">38.5天</td>
+                                        <td>¥78,500</td>
+                                        <td class="warning-value">24%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>诊断设备项目</td>
+                                        <td>22.3天</td>
+                                        <td>¥45,200</td>
+                                        <td>9%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>亚马逊项目</td>
+                                        <td class="alert-value">52.7天</td>
+                                        <td class="alert-value">¥126,800</td>
+                                        <td class="alert-value">31%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="mt-4">
+                                <h4 class="font-medium mb-2">库存健康度分析</h4>
+                                <div class="flex items-center mb-3">
+                                    <div class="w-1/3 text-sm">优质库存 (< 30天)</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value success" style="width: 42%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm">42%</div>
+                                </div>
+                                <div class="flex items-center mb-3">
+                                    <div class="w-1/3 text-sm">正常库存 (30-60天)</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value" style="width: 33%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm">33%</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-1/3 text-sm">滞销库存 (> 60天)</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value danger" style="width: 25%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm">25%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="project-breakdown" class="tab-content">
+                <!-- 项目拆解标签 -->
+                <div class="flex border-b mb-6 overflow-x-auto" style="border-color: var(--border-color);">
+                    <button class="tab-button active" data-project-tab="tesla">
+                        <i class="fas fa-car mr-1"></i>特斯拉项目
+                    </button>
+                    <button class="tab-button" data-project-tab="medical">
+                        <i class="fas fa-heartbeat mr-1"></i>诊断设备项目
+                    </button>
+                    <button class="tab-button" data-project-tab="amazon">
+                        <i class="fab fa-amazon mr-1"></i>亚马逊项目
+                    </button>
+                </div>
+
+                <!-- 特斯拉项目 -->
+                <div id="tesla-tab" class="project-tab active">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="card p-4">
+                            <h3 class="text-lg font-semibold mb-3">特斯拉项目概览</h3>
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">物流成本率</span>
+                                    <div class="text-xl font-bold">16.5%</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">订单量</span>
+                                    <div class="text-xl font-bold">15,342</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">平均时效</span>
+                                    <div class="text-xl font-bold">7.2天</div>
+                                </div>
+                            </div>
+                            <h4 class="font-medium text-sm mb-2" style="color: var(--text-secondary);">物流费用细分</h4>
+                            <div class="flex items-center mb-3">
+                                <div class="w-1/3 text-sm">头程运输</div>
+                                <div class="w-2/3 ml-2">
+                                    <div class="progress-bar">
+                                        <div class="progress-value" style="width: 48%; background-color: #3B82F6;"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-2 text-sm">48%</div>
+                            </div>
+                            <div class="flex items-center mb-3">
+                                <div class="w-1/3 text-sm">仓储费用</div>
+                                <div class="w-2/3 ml-2">
+                                    <div class="progress-bar">
+                                        <div class="progress-value" style="width: 22%; background-color: #F59E0B;"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-2 text-sm">22%</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-1/3 text-sm">尾程派送</div>
+                                <div class="w-2/3 ml-2">
+                                    <div class="progress-bar">
+                                        <div class="progress-value" style="width: 30%; background-color: #10B981;"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-2 text-sm">30%</div>
+                            </div>
+                        </div>
+
+                        <div class="card p-4 lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-3">头程运输成本拆解</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div>
+                                    <h4 class="font-medium mb-2">海运拼箱/整箱成本对比</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>运输方式</th>
+                                                <th>CBM单价</th>
+                                                <th>平均时效</th>
+                                                <th>适用场景</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>整箱(FCL)</td>
+                                                <td>¥1,250</td>
+                                                <td>28天</td>
+                                                <td>大批量</td>
+                                            </tr>
+                                            <tr>
+                                                <td>拼箱(LCL)</td>
+                                                <td class="warning-value">¥1,580</td>
+                                                <td>32天</td>
+                                                <td>中小批量</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">不同港口清关费用差异</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>港口</th>
+                                                <th>清关费</th>
+                                                <th>内陆运输</th>
+                                                <th>总费用</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>洛杉矶</td>
+                                                <td>$320</td>
+                                                <td>$480</td>
+                                                <td>$800</td>
+                                            </tr>
+                                            <tr>
+                                                <td>休斯顿</td>
+                                                <td>$280</td>
+                                                <td class="alert-value">$650</td>
+                                                <td class="warning-value">$930</td>
+                                            </tr>
+                                            <tr>
+                                                <td>纽约</td>
+                                                <td class="warning-value">$350</td>
+                                                <td>$420</td>
+                                                <td>$770</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold mt-5 mb-3">尾程成本优化</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <canvas id="tesla-logistics-chart" height="200"></canvas>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">渠道对比分析</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>渠道</th>
+                                                <th>单公斤运费</th>
+                                                <th>时效稳定性</th>
+                                                <th>异常率</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>燕文专线</td>
+                                                <td>$6.8</td>
+                                                <td class="good-value">±0.6天</td>
+                                                <td>1.8%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>云途专线</td>
+                                                <td class="good-value">$6.2</td>
+                                                <td>±1.2天</td>
+                                                <td>2.1%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>UPS快递</td>
+                                                <td class="alert-value">$12.5</td>
+                                                <td class="good-value">±0.5天</td>
+                                                <td class="good-value">0.9%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p class="text-sm mt-3" style="color: var(--text-secondary);">
+                                        <i class="fas fa-info-circle mr-1"></i> 专线渠道在8kg以上包裹更具成本优势，建议调整配送策略
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 诊断设备项目 -->
+                <div id="medical-tab" class="project-tab hidden">
+                    <div class="card p-4 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">诊断设备项目 - 货代对比表</h3>
+                        <div class="table-container">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th>国家</th>
+                                        <th>渠道</th>
+                                        <th>平均时效</th>
+                                        <th>单公斤运费</th>
+                                        <th>异常率</th>
+                                        <th>账期条件</th>
+                                        <th>评分</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td rowspan="3">美国</td>
+                                        <td>A快递</td>
+                                        <td>5天</td>
+                                        <td class="alert-value">$8.2</td>
+                                        <td>2%</td>
+                                        <td>30天</td>
+                                        <td>⭐⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td>B专线</td>
+                                        <td>7天</td>
+                                        <td>$6.5</td>
+                                        <td>1.5%</td>
+                                        <td class="warning-value">现结</td>
+                                        <td>⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td>C物流</td>
+                                        <td class="warning-value">9天</td>
+                                        <td class="good-value">$5.8</td>
+                                        <td class="warning-value">2.8%</td>
+                                        <td>45天</td>
+                                        <td>⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="2">德国</td>
+                                        <td>D专线</td>
+                                        <td>8天</td>
+                                        <td>€7.2</td>
+                                        <td class="good-value">1.2%</td>
+                                        <td>30天</td>
+                                        <td>⭐⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td>E快递</td>
+                                        <td class="good-value">6天</td>
+                                        <td class="alert-value">€9.5</td>
+                                        <td>1.8%</td>
+                                        <td>15天</td>
+                                        <td>⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="2">英国</td>
+                                        <td>F专线</td>
+                                        <td>7天</td>
+                                        <td>£6.8</td>
+                                        <td>1.9%</td>
+                                        <td>30天</td>
+                                        <td>⭐⭐⭐⭐</td>
+                                    </tr>
+                                    <tr>
+                                        <td>G专线</td>
+                                        <td>8天</td>
+                                        <td class="good-value">£6.2</td>
+                                        <td class="warning-value">2.5%</td>
+                                        <td class="warning-value">现结</td>
+                                        <td>⭐⭐⭐</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-sm mt-3" style="color: var(--text-secondary);">
+                            <i class="fas fa-exclamation-circle mr-1 text-yellow-500"></i> 红色标记表示异常值，黄色标记表示需要注意的数据点
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="card p-4">
+                            <h3 class="text-lg font-semibold mb-3">高价值小件分析</h3>
+                            <canvas id="medical-value-chart" height="250"></canvas>
+                            <div class="mt-4 text-sm" style="color: var(--text-secondary);">
+                                <p class="mb-1"><i class="fas fa-check-circle mr-1 text-green-500"></i> <strong>分析结论：</strong>高价值小件（>$200, <2kg）占比28%，但贡献了45%的物流成本</p>
+                                <p class="mb-1"><i class="fas fa-lightbulb mr-1 text-yellow-500"></i> <strong>建议：</strong>2kg以下小件可从快递转为专线，预计节省18%成本</p>
+                                <p><i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> <strong>风险：</strong>时效可能延长1-2天，需评估对客户体验的影响</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-4">
+                            <h3 class="text-lg font-semibold mb-3">同国家不同货代价格差异</h3>
+                            <canvas id="medical-pricing-chart" height="250"></canvas>
+                            <div class="mt-4">
+                                <h4 class="font-medium mb-2">价格差异超5%的路向</h4>
+                                <div class="table-container">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>国家</th>
+                                                <th>最低价货代</th>
+                                                <th>最高价货代</th>
+                                                <th>差异率</th>
+                                                <th>建议</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>美国</td>
+                                                <td>C物流</td>
+                                                <td>A快递</td>
+                                                <td class="alert-value">41.4%</td>
+                                                <td>重新招标</td>
+                                            </tr>
+                                            <tr>
+                                                <td>德国</td>
+                                                <td>D专线</td>
+                                                <td>E快递</td>
+                                                <td class="warning-value">31.9%</td>
+                                                <td>谈判议价</td>
+                                            </tr>
+                                            <tr>
+                                                <td>英国</td>
+                                                <td>G专线</td>
+                                                <td>F专线</td>
+                                                <td>9.7%</td>
+                                                <td>保持观察</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 亚马逊项目 -->
+                <div id="amazon-tab" class="project-tab hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="card p-4">
+                            <h3 class="text-lg font-semibold mb-3">亚马逊项目概览</h3>
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">物流成本率</span>
+                                    <div class="text-xl font-bold alert-value">19.8%</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">订单量</span>
+                                    <div class="text-xl font-bold">48,623</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm" style="color: var(--text-secondary);">IPI分数</span>
+                                    <div class="text-xl font-bold warning-value">468</div>
+                                </div>
+                            </div>
+                            <h4 class="font-medium text-sm mb-2" style="color: var(--text-secondary);">FBA库存健康度</h4>
+                            <canvas id="amazon-ipi-chart" height="100"></canvas>
+                            <div class="mt-4">
+                                <h4 class="font-medium mb-2">FBA成本细分</h4>
+                                <div class="flex items-center mb-3">
+                                    <div class="w-1/3 text-sm">FBA仓储费</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value" style="width: 32%; background-color: #F59E0B;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm">32%</div>
+                                </div>
+                                <div class="flex items-center mb-3">
+                                    <div class="w-1/3 text-sm">FBA配送费</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value" style="width: 45%; background-color: #3B82F6;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm">45%</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-1/3 text-sm">长期仓储费</div>
+                                    <div class="w-2/3 ml-2">
+                                        <div class="progress-bar">
+                                            <div class="progress-value danger" style="width: 23%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2 text-sm alert-value">23%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-4 lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-3">FBA补货模型健康度</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <canvas id="amazon-stock-chart" height="250"></canvas>
+                                    <p class="text-sm text-center mt-2" style="color: var(--text-secondary);">
+                                        过去6个月库存趋势与IPI分数变化
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">库存周期分析</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>库存类型</th>
+                                                <th>占比</th>
+                                                <th>周转天数</th>
+                                                <th>月均成本</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>健康库存 (<45天)</td>
+                                                <td>38%</td>
+                                                <td class="good-value">28天</td>
+                                                <td>¥48,200</td>
+                                            </tr>
+                                            <tr>
+                                                <td>一般库存 (45-90天)</td>
+                                                <td>31%</td>
+                                                <td>67天</td>
+                                                <td>¥39,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>冗余库存 (>90天)</td>
+                                                <td class="alert-value">31%</td>
+                                                <td class="alert-value">142天</td>
+                                                <td class="alert-value">¥39,100</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="mt-4">
+                                        <h4 class="font-medium mb-2">补货策略分析</h4>
+                                        <p class="text-sm mb-2" style="color: var(--text-secondary);">
+                                            <i class="fas fa-exclamation-circle mr-1 text-red-500"></i> <strong>问题：</strong>冗余库存占比高达31%，产生不必要的长期仓储费
+                                        </p>
+                                        <p class="text-sm mb-2" style="color: var(--text-secondary);">
+                                            <i class="fas fa-search mr-1 text-blue-500"></i> <strong>原因：</strong>销售预测过于乐观，补货量过大导致库存积压
+                                        </p>
+                                        <p class="text-sm" style="color: var(--text-secondary);">
+                                            <i class="fas fa-lightbulb mr-1 text-yellow-500"></i> <strong>建议：</strong>重新评估补货周期，建立销售量门槛触发补货机制
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold mt-6 mb-3">FBA与自发货成本对比</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <canvas id="amazon-fulfillment-chart" height="200"></canvas>
+                                    <p class="text-sm text-center mt-2" style="color: var(--text-secondary);">
+                                        不同商品类型的FBA与自发货成本对比
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-2">紧急补货成本分析</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>月份</th>
+                                                <th>空运补货次数</th>
+                                                <th>额外费用</th>
+                                                <th>断货损失</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>2023/06</td>
+                                                <td>2次</td>
+                                                <td>¥28,500</td>
+                                                <td>¥42,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2023/07</td>
+                                                <td class="warning-value">4次</td>
+                                                <td class="warning-value">¥56,200</td>
+                                                <td>¥38,600</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2023/08</td>
+                                                <td class="alert-value">7次</td>
+                                                <td class="alert-value">¥105,800</td>
+                                                <td class="alert-value">¥76,300</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p class="text-sm mt-3" style="color: var(--text-secondary);">
+                                        <i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> 紧急空运补货次数逐月上升，需优化补货预警机制，设置安全库存水平
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="anomaly-monitoring" class="tab-content">
+                <div class="card p-4 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">TOP3成本异常分析</h3>
+                        <div>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-download mr-1"></i> 导出报告
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th>异常项</th>
+                                    <th>项目</th>
+                                    <th>异常值</th>
+                                    <th>基准值</th>
+                                    <th>偏差率</th>
+                                    <th>影响金额</th>
+                                    <th>紧急度</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="font-medium">某专线渠道10kg+包裹单价骤增</div>
+                                        <div class="text-xs" style="color: var(--text-tertiary);">云途专线美国路向大包裹</div>
+                                    </td>
+                                    <td>特斯拉项目</td>
+                                    <td class="alert-value">$8.2/kg</td>
+                                    <td>$6.5/kg</td>
+                                    <td class="alert-value">+26.2%</td>
+                                    <td>¥98,500</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color);">
+                                            高
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="font-medium">海外仓月度仓储费突增</div>
+                                        <div class="text-xs" style="color: var(--text-tertiary);">美国加州仓储费用激增</div>
+                                    </td>
+                                    <td>特斯拉项目</td>
+                                    <td class="alert-value">¥78,500</td>
+                                    <td>¥58,200</td>
+                                    <td class="alert-value">+34.9%</td>
+                                    <td>¥20,300</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-color);">
+                                            中
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="font-medium">FBA长期仓储费用增加</div>
+                                        <div class="text-xs" style="color: var(--text-tertiary);">亚马逊长期库存收费提高</div>
+                                    </td>
+                                    <td>亚马逊项目</td>
+                                    <td class="alert-value">¥29,200</td>
+                                    <td>¥18,500</td>
+                                    <td class="alert-value">+57.8%</td>
+                                    <td>¥10,700</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-color);">
+                                            中
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="card p-4">
+                        <h3 class="text-lg font-semibold mb-3">物流时效与退货率相关性分析</h3>
+                        <canvas id="correlation-chart" height="250"></canvas>
+                        <div class="mt-4">
+                            <div class="flex items-center mb-1">
+                                <div class="dot" style="background-color: #3B82F6;"></div>
+                                <div class="text-sm">美国路向</div>
+                            </div>
+                            <div class="flex items-center mb-1">
+                                <div class="dot" style="background-color: #10B981;"></div>
+                                <div class="text-sm">欧洲路向</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="dot" style="background-color: #F59E0B;"></div>
+                                <div class="text-sm">其他国家</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-sm" style="color: var(--text-secondary);">
+                            <p><i class="fas fa-info-circle mr-1"></i> <strong>分析结论：</strong>物流时效延长超过10天后，退货率显著提升（相关系数r=0.78）</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h3 class="text-lg font-semibold mb-3">海外仓现货率与订单取消率关系</h3>
+                        <canvas id="inventory-cancellation-chart" height="250"></canvas>
+                        <div class="mt-3 text-sm" style="color: var(--text-secondary);">
+                            <p><i class="fas fa-exclamation-circle mr-1 text-red-500"></i> <strong>关键发现：</strong>现货率低于85%时，订单取消率急剧上升</p>
+                            <p><i class="fas fa-lightbulb mr-1 text-yellow-500"></i> <strong>建议阈值：</strong>将现货率维持在90%以上可将订单取消率控制在5%以下</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题定位矩阵 -->
+                <div class="card p-4 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">问题定位矩阵</h3>
+                    <p class="text-sm mb-4" style="color: var(--text-secondary);">
+                        横轴成本影响度，纵轴改进可行性，将问题点归入四个象限，便于确定优先解决顺序
+                    </p>
+                    <div class="chart-container" id="problem-matrix-chart">
+                        <div class="mermaid">
+                            %%{init: {'theme':'neutral', 'themeVariables': { 'fontSize': '14px'}}}%%
+                            quadrantChart
+                            title 物流问题定位矩阵
+                            x-axis 成本影响低 --> 成本影响高
+                            y-axis 改进难度高 --> 改进难度低
+                            quadrant-1 持续改进
+                            quadrant-2 优先解决
+                            quadrant-3 长期规划
+                            quadrant-4 快速修复
+                            "FBA长期仓储费用增加": [0.85, 0.75]
+                            "海外仓月度仓储费突增": [0.72, 0.65]
+                            "专线渠道10kg+包裹单价骤增": [0.9, 0.8]
+                            "美国路向清关延误": [0.6, 0.5]
+                            "欧洲渠道价格波动": [0.5, 0.7]
+                            "特斯拉项目包装体积过大": [0.65, 0.9]
+                            "亚马逊补货频率过高": [0.75, 0.85]
+                            "自主物流软件兼容性问题": [0.45, 0.4]
+                            "德国海关新规则适应": [0.55, 0.3]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 异常监控预警设置 -->
+                <div class="card p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">异常监控预警设置</h3>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus mr-1"></i> 添加预警规则
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th>监控指标</th>
+                                    <th>告警条件</th>
+                                    <th>适用项目</th>
+                                    <th>通知方式</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>单票物流成本率</td>
+                                    <td>> 18% 或 环比增长超5%</td>
+                                    <td>所有项目</td>
+                                    <td>邮件 + 短信</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                            已启用
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>海外仓周转天数</td>
+                                    <td>> 45天</td>
+                                    <td>特斯拉项目</td>
+                                    <td>邮件</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                            已启用
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>FBA库存水平</td>
+                                    <td>< 2周或 > 12周</td>
+                                    <td>亚马逊项目</td>
+                                    <td>邮件 + 短信</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                            已启用
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>渠道单价异常</td>
+                                    <td>环比增长超15%</td>
+                                    <td>所有项目</td>
+                                    <td>邮件</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(107, 114, 128, 0.1); color: var(--text-tertiary);">
+                                            已禁用
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>异常签收率</td>
+                                    <td>> 3%</td>
+                                    <td>诊断设备项目</td>
+                                    <td>邮件 + 短信</td>
+                                    <td>
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                            已启用
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="optimization" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="card p-4">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-car text-xl mr-3" style="color: var(--primary-color);"></i>
+                            <h3 class="text-lg font-semibold">特斯拉项目优化建议</h3>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--primary-color);">
+                            <h4 class="font-medium mb-2">测试美西港口拆柜再卡车派送方案</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                比较洛杉矶港与旧金山港的清关效率与内陆运输成本，评估将货物在美西港口拆箱，改用卡车运输至目的地的综合成本
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 12-15%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 中等</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--secondary-color);">
+                            <h4 class="font-medium mb-2">对周转超60天的SKU设置库存红线</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                建立库存预警机制，针对海外仓滞销商品制定清仓策略或调整补货频率，防止仓储费持续增加
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 8-10%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 低</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4" style="border-color: var(--accent-color);">
+                            <h4 class="font-medium mb-2">8kg以上包裹统一改用专线渠道</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                数据显示8kg以上包裹使用专线渠道成本优势明显，建议修改系统自动选择规则，统一改用燕文或云途专线
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 18-20%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 低</span>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button class="btn btn-outline w-full">
+                                <i class="fas fa-file-download mr-1"></i> 下载详细方案
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card p-4">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-heartbeat text-xl mr-3" style="color: var(--primary-color);"></i>
+                            <h3 class="text-lg font-semibold">诊断设备项目优化建议</h3>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--primary-color);">
+                            <h4 class="font-medium mb-2">对欧洲路向开展专线渠道招标</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                针对德国、英国等主要欧洲市场，开展专线渠道集中招标，整合需求争取更优惠价格，同时评估引入新货代的可行性
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 15-18%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 中等</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--secondary-color);">
+                            <h4 class="font-medium mb-2">建立20kg以上包裹强制走海运规则</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                分析显示大部分高重量诊断设备非紧急订单，可通过调整发货策略，将20kg以上包裹改为海运发货，大幅降低运费
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 25-30%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 中等</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4" style="border-color: var(--accent-color);">
+                            <h4 class="font-medium mb-2">对美国路向2kg以下包裹从快递转为专线</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                分析显示高价值小件（>$200, <2kg）占比28%，但贡献了45%的物流成本，可通过渠道调整优化成本结构
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 18-20%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 低</span>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button class="btn btn-outline w-full">
+                                <i class="fas fa-file-download mr-1"></i> 下载详细方案
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card p-4">
+                        <div class="flex items-center mb-3">
+                            <i class="fab fa-amazon text-xl mr-3" style="color: var(--primary-color);"></i>
+                            <h3 class="text-lg font-semibold">亚马逊项目优化建议</h3>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--primary-color);">
+                            <h4 class="font-medium mb-2">对低动销商品转用海外仓一件代发</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                针对动销率低于5%的SKU，从FBA转为海外仓一件代发模式，避免长期仓储费，同时保持快速发货能力
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 20-25%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 中等</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4 mb-4" style="border-color: var(--secondary-color);">
+                            <h4 class="font-medium mb-2">优化包装尺寸降低FBA配送费等级</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                分析显示28%的产品可通过优化包装降低FBA尺寸等级，重新设计包装材料和方式，避免边缘尺寸超标
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 12-15%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 中等</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 pl-4" style="border-color: var(--accent-color);">
+                            <h4 class="font-medium mb-2">建立基于数据的FBA补货模型</h4>
+                            <p class="text-sm" style="color: var(--text-secondary);">
+                                重新设计补货触发机制，结合历史销量数据、季节性波动和促销计划，建立动态补货模型，避免过度或不足库存
+                            </p>
+                            <div class="mt-2">
+                                <span class="text-xs font-medium" style="color: var(--primary-color);">预期节省: 15-18%</span>
+                                <span class="mx-2 text-xs" style="color: var(--text-tertiary);">|</span>
+                                <span class="text-xs font-medium" style="color: var(--text-tertiary);">实施难度: 高</span>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button class="btn btn-outline w-full">
+                                <i class="fas fa-file-download mr-1"></i> 下载详细方案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 成本敏感度分析 -->
+                <div class="card p-4 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">成本敏感度分析模型</h3>
+                    <p class="text-sm mb-4" style="color: var(--text-secondary);">
+                        展示各环节成本降低10%对总成本的影响，帮助决策层明确优化优先级
+                    </p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <canvas id="sensitivity-detailed-chart" height="250"></canvas>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-3">优化优先级推荐</h4>
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th>优化环节</th>
+                                        <th>总成本影响</th>
+                                        <th>实施难度</th>
+                                        <th>建议优先级</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>FBA长期仓储费</td>
+                                        <td>2.3%</td>
+                                        <td>低</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color);">
+                                                P0
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>专线渠道优化</td>
+                                        <td>1.9%</td>
+                                        <td>低</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color);">
+                                                P0
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>海外仓周转优化</td>
+                                        <td>1.7%</td>
+                                        <td>中</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-color);">
+                                                P1
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>包装优化</td>
+                                        <td>1.5%</td>
+                                        <td>中</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-color);">
+                                                P1
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>欧洲渠道招标</td>
+                                        <td>1.4%</td>
+                                        <td>高</td>
+                                        <td>
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                                P2
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="text-sm mt-3" style="color: var(--text-secondary);">
+                                <i class="fas fa-lightbulb mr-1 text-yellow-500"></i> 建议同时推进P0级别优化项目，预计可在3个月内见效，实现总成本降低4.2%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 行业基准对比 -->
+                <div class="card p-4">
+                    <h3 class="text-lg font-semibold mb-4">行业物流基准对比</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div>
+                            <canvas id="benchmark-chart" height="250"></canvas>
+                            <p class="text-sm text-center mt-2" style="color: var(--text-secondary);">
+                                与同行业平均水平和领先企业对比
+                            </p>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div class="mb-4">
+                                <h4 class="font-medium mb-2">跨境电商物流成本率基准（按品类）</h4>
+                                <div class="table-container">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>品类</th>
+                                                <th>行业平均</th>
+                                                <th>领先企业</th>
+                                                <th>我司</th>
+                                                <th>差距</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>汽车配件</td>
+                                                <td>16.2%</td>
+                                                <td>14.5%</td>
+                                                <td class="warning-value">16.5%</td>
+                                                <td>+2.0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>医疗器械</td>
+                                                <td>18.5%</td>
+                                                <td>16.8%</td>
+                                                <td>17.2%</td>
+                                                <td>+0.4%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>消费电子</td>
+                                                <td>15.8%</td>
+                                                <td>13.2%</td>
+                                                <td class="alert-value">19.8%</td>
+                                                <td class="alert-value">+6.6%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-2">最佳实践借鉴</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="border border-gray-200 rounded p-3" style="border-color: var(--border-color);">
+                                        <h5 class="font-medium text-sm mb-1">亚马逊项目FBA策略</h5>
+                                        <p class="text-sm" style="color: var(--text-secondary);">
+                                            领先企业采用"双仓模式"，核心SKU使用FBA，长尾SKU使用自建仓或3PL，降低长期仓储费成本
+                                        </p>
+                                    </div>
+                                    <div class="border border-gray-200 rounded p-3" style="border-color: var(--border-color);">
+                                        <h5 class="font-medium text-sm mb-1">头程运输集中化</h5>
+                                        <p class="text-sm" style="color: var(--text-secondary);">
+                                            领先企业通过季度招标制度，集中采购运力资源，提高议价能力，实现头程运输成本降低15-20%
+                                        </p>
+                                    </div>
+                                    <div class="border border-gray-200 rounded p-3" style="border-color: var(--border-color);">
+                                        <h5 class="font-medium text-sm mb-1">专线渠道多元化</h5>
+                                        <p class="text-sm" style="color: var(--text-secondary);">
+                                            领先企业对不同重量段包裹采用差异化策略，通过4-5家专线供应商竞争机制保持成本优势
+                                        </p>
+                                    </div>
+                                    <div class="border border-gray-200 rounded p-3" style="border-color: var(--border-color);">
+                                        <h5 class="font-medium text-sm mb-1">库存周转数字化</h5>
+                                        <p class="text-sm" style="color: var(--text-secondary);">
+                                            领先企业建立基于AI的库存预测模型，精准控制各仓库存水平，平均周转天数较行业平均低30%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="py-4 px-6 border-t" style="border-color: var(--border-color);">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-3 md:mb-0">
+                    <p class="text-sm" style="color: var(--text-secondary);">© 2023 跨境电商物流分析中心</p>
+                </div>
+                <div>
+                    <p class="text-sm" style="color: var(--text-secondary);">
+                        数据最后更新时间: 2023-09-15 15:30
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 设置当前日期
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        document.getElementById('current-date').textContent = `${year}年${month}月`;
+        
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'neutral',
+            flowchart: { useMaxWidth: true }
+        });
+
+        // 处理标签页切换
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                // 如果是主标签
+                if (tabId) {
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                } 
+                // 如果是项目标签
+                else {
+                    const projectTab = button.getAttribute('data-project-tab');
+                    document.querySelectorAll('[data-project-tab]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelectorAll('.project-tab').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    button.classList.add('active');
+                    document.getElementById(projectTab + '-tab').classList.remove('hidden');
+                }
+            });
+        });
+
+        // 切换主题
+        const toggleThemeButton = document.querySelector('.toggle-theme');
+        const darkIcon = document.querySelector('.dark-icon');
+        const lightIcon = document.querySelector('.light-icon');
+        
+        // 检查系统主题
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+            darkIcon.classList.add('hidden');
+            lightIcon.classList.remove('hidden');
+        }
+        
+        toggleThemeButton.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+            
+            // 更新mermaid主题
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'neutral',
+                flowchart: { useMaxWidth: true }
+            });
+            
+            // 重新渲染图表
+            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            
+            // 重新渲染所有Chart.js图表
+            updateChartStyles();
+        });
+
+        // 初始化图表
+        function initCharts() {
+            // 定义图表颜色
+            const chartColors = {
+                primary: '#3B82F6',
+                secondary: '#10B981',
+                accent: '#F59E0B',
+                danger: '#EF4444',
+                gray: '#9CA3AF'
+            };
+            
+            // 成本敏感度分析图
+            const sensitivityChart = new Chart(
+                document.getElementById('sensitivity-chart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['FBA长期仓储费', '专线渠道优化', '海外仓周转', '包装优化', '欧洲渠道招标'],
+                        datasets: [
+                            {
+                                label: '总成本影响',
+                                data: [2.3, 1.9, 1.7, 1.5, 1.4],
+                                backgroundColor: chartColors.primary
+                            },
+                            {
+                                label: '实施难度',
+                                data: [0.8, 0.7, 1.5, 1.6, 2.5],
+                                backgroundColor: chartColors.secondary
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '影响度 / 难度 (0-3)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 成本对比图
+            const costComparisonChart = new Chart(
+                document.getElementById('cost-comparison-chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['1kg', '2kg', '5kg', '10kg', '15kg', '20kg'],
+                        datasets: [
+                            {
+                                label: '快递',
+                                data: [10.5, 15.8, 36.4, 65.2, 95.7, 125.2],
+                                borderColor: chartColors.primary,
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: '专线',
+                                data: [9.2, 12.4, 24.8, 42.5, 58.4, 76.2],
+                                borderColor: chartColors.secondary,
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'FBA',
+                                data: [12.4, 18.5, 32.6, 57.8, 86.2, 115.4],
+                                borderColor: chartColors.accent,
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: $${context.raw}/kg`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '单公斤成本 ($)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 物流时效与质量矩阵
+            const deliveryQualityChart = new Chart(
+                document.getElementById('delivery-quality-chart'),
+                {
+                    type: 'bubble',
+                    data: {
+                        datasets: [
+                            {
+                                label: '燕文专线',
+                                data: [{x: 7.2, y: 1.8, r: 15}],
+                                backgroundColor: 'rgba(59, 130, 246, 0.6)'
+                            },
+                            {
+                                label: '云途专线',
+                                data: [{x: 6.4, y: 2.1, r: 12}],
+                                backgroundColor: 'rgba(16, 185, 129, 0.6)'
+                            },
+                            {
+                                label: 'UPS',
+                                data: [{x: 5.2, y: 0.9, r: 8}],
+                                backgroundColor: 'rgba(245, 158, 11, 0.6)'
+                            },
+                            {
+                                label: 'DHL',
+                                data: [{x: 4.8, y: 1.1, r: 7}],
+                                backgroundColor: 'rgba(239, 68, 68, 0.6)'
+                            },
+                            {
+                                label: '4PX专线',
+                                data: [{x: 8.5, y: 2.8, r: 10}],
+                                backgroundColor: 'rgba(107, 114, 128, 0.6)'
+                            },
+                            {
+                                label: '顺丰国际',
+                                data: [{x: 5.8, y: 1.4, r: 9}],
+                                backgroundColor: 'rgba(124, 58, 237, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '平均妥投时效 (天)'
+                                },
+                                reverse: false
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '异常签收率 (%)'
+                                },
+                                reverse: false
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 库存周转与仓储费关系图
+            const inventoryCorrelationChart = new Chart(
+                document.getElementById('inventory-correlation-chart'),
+                {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: '特斯拉项目SKU',
+                                data: [
+                                    {x: 21, y: 320},
+                                    {x: 28, y: 450},
+                                    {x: 35, y: 580},
+                                    {x: 42, y: 620},
+                                    {x: 52, y: 780},
+                                    {x: 62, y: 950},
+                                    {x: 78, y: 1200},
+                                    {x: 85, y: 1350}
+                                ],
+                                backgroundColor: 'rgba(59, 130, 246, 0.6)'
+                            },
+                            {
+                                label: '诊断设备项目SKU',
+                                data: [
+                                    {x: 18, y: 280},
+                                    {x: 24, y: 350},
+                                    {x: 31, y: 420},
+                                    {x: 38, y: 520},
+                                    {x: 45, y: 650}
+                                ],
+                                backgroundColor: 'rgba(16, 185, 129, 0.6)'
+                            },
+                            {
+                                label: '亚马逊项目SKU',
+                                data: [
+                                    {x: 25, y: 450},
+                                    {x: 35, y: 580},
+                                    {x: 45, y: 680},
+                                    {x: 58, y: 920},
+                                    {x: 68, y: 1150},
+                                    {x: 85, y: 1420},
+                                    {x: 95, y: 1650},
+                                    {x: 110, y: 1950}
+                                ],
+                                backgroundColor: 'rgba(245, 158, 11, 0.6)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '库存周转天数'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '月均仓储费用 (¥/CBM)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 特斯拉物流渠道分析图
+            const teslaLogisticsChart = new Chart(
+                document.getElementById('tesla-logistics-chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['1kg', '3kg', '5kg', '8kg', '10kg', '15kg', '20kg'],
+                        datasets: [
+                            {
+                                label: '燕文专线',
+                                data: [8.5, 7.8, 7.2, 6.8, 6.5, 6.3, 6.1],
+                                borderColor: chartColors.primary,
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3
+                            },
+                            {
+                                label: '云途专线',
+                                data: [8.2, 7.5, 7.0, 6.5, 6.2, 6.0, 5.8],
+                                borderColor: chartColors.secondary,
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3
+                            },
+                            {
+                                label: 'UPS快递',
+                                data: [14.5, 13.8, 13.2, 12.8, 12.5, 12.2, 12.0],
+                                borderColor: chartColors.accent,
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '不同重量段单公斤运费'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '单公斤运费 ($)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 诊断设备高价值小件分析图
+            const medicalValueChart = new Chart(
+                document.getElementById('medical-value-chart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['高价值小件', '中等价值', '低价值大件'],
+                        datasets: [
+                            {
+                                label: '占总订单比例',
+                                data: [28, 45, 27],
+                                backgroundColor: chartColors.primary
+                            },
+                            {
+                                label: '占物流成本比例',
+                                data: [45, 38, 17],
+                                backgroundColor: chartColors.accent
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '百分比 (%)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 诊断设备价格差异分析
+            const medicalPricingChart = new Chart(
+                document.getElementById('medical-pricing-chart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['美国', '德国', '英国', '加拿大', '澳大利亚'],
+                        datasets: [
+                            {
+                                label: '最低价货代',
+                                data: [5.8, 7.2, 6.2, 8.4, 9.1],
+                                backgroundColor: chartColors.secondary
+                            },
+                            {
+                                label: '最高价货代',
+                                data: [8.2, 9.5, 6.8, 9.2, 9.8],
+                                backgroundColor: chartColors.primary
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '单公斤运费 (本地货币)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 亚马逊IPI分数图表
+            const amazonIpiChart = new Chart(
+                document.getElementById('amazon-ipi-chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['4月', '5月', '6月', '7月', '8月', '9月'],
+                        datasets: [
+                            {
+                                label: 'IPI分数',
+                                data: [510, 498, 485, 472, 468, 468],
+                                borderColor: chartColors.primary,
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: '最低标准',
+                                data: [450, 450, 450, 450, 450, 450],
+                                borderColor: chartColors.danger,
+                                borderDash: [5, 5],
+                                tension: 0,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 400,
+                                max: 550
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 亚马逊库存趋势图
+            const amazonStockChart = new Chart(
+                document.getElementById('amazon-stock-chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['4月', '5月', '6月', '7月', '8月', '9月'],
+                        datasets: [
+                            {
+                                label: '健康库存比例',
+                                data: [52, 48, 45, 42, 39, 38],
+                                borderColor: chartColors.secondary,
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: '冗余库存比例',
+                                data: [22, 24, 26, 28, 30, 31],
+                                borderColor: chartColors.danger,
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'IPI分数',
+                                data: [510, 498, 485, 472, 468, 468],
+                                borderColor: chartColors.accent,
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '库存比例 (%)'
+                                },
+                                max: 100
+                            },
+                            y1: {
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'IPI分数'
+                                },
+                                min: 400,
+                                max: 550,
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // FBA与自发货成本对比
+            const amazonFulfillmentChart = new Chart(
+                document.getElementById('amazon-fulfillment-chart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['小件轻量', '中件标准', '大件重量', '超大件'],
+                        datasets: [
+                            {
+                                label: 'FBA',
+                                data: [3.8, 6.2, 12.5, 24.8],
+                                backgroundColor: chartColors.primary
+                            },
+                            {
+                                label: '第三方仓',
+                                data: [4.5, 5.8, 8.4, 12.5],
+                                backgroundColor: chartColors.secondary
+                            },
+                            {
+                                label: '自发货',
+                                data: [5.2, 7.1, 10.2, 15.8],
+                                backgroundColor: chartColors.accent
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '单件处理成本 ($)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 物流时效与退货率相关性分析
+            const correlationChart = new Chart(
+                document.getElementById('correlation-chart'),
+                {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: '美国路向',
+                                data: [
+                                    {x: 5, y: 1.5},
+                                    {x: 6, y: 1.8},
+                                    {x: 7, y: 2.2},
+                                    {x: 9, y: 3.1},
+                                    {x: 11, y: 4.5},
+                                    {x: 14, y: 7.2}
+                                ],
+                                backgroundColor: chartColors.primary
+                            },
+                            {
+                                label: '欧洲路向',
+                                data: [
+                                    {x: 6, y: 1.2},
+                                    {x: 7, y: 1.8},
+                                    {x: 8, y: 2.3},
+                                    {x: 10, y: 3.5},
+                                    {x: 12, y: 5.2},
+                                    {x: 15, y: 6.8}
+                                ],
+                                backgroundColor: chartColors.secondary
+                            },
+                            {
+                                label: '其他国家',
+                                data: [
+                                    {x: 7, y: 2.1},
+                                    {x: 9, y: 3.2},
+                                    {x: 11, y: 4.5},
+                                    {x: 13, y: 5.8},
+                                    {x: 16, y: 7.6},
+                                    {x: 18, y: 9.2}
+                                ],
+                                backgroundColor: chartColors.accent
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '物流时效 (天)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '退货率 (%)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 海外仓现货率与订单取消率关系
+            const inventoryCancellationChart = new Chart(
+                document.getElementById('inventory-cancellation-chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['100%', '95%', '90%', '85%', '80%', '75%', '70%', '65%'],
+                        datasets: [
+                            {
+                                label: '订单取消率',
+                                data: [1.2, 2.5, 4.8, 7.5, 12.8, 18.5, 25.2, 32.4],
+                                borderColor: chartColors.danger,
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '海外仓现货率'
+                                },
+                                reverse: true
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '订单取消率 (%)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 成本敏感度详细分析
+            const sensitivityDetailedChart = new Chart(
+                document.getElementById('sensitivity-detailed-chart'),
+                {
+                    type: 'horizontalBar',
+                    data: {
+                        labels: ['FBA长期仓储费', '专线渠道优化', '海外仓周转', '包装优化', '欧洲渠道招标', '头程海运拼箱', '第三方仓转FBA'],
+                        datasets: [
+                            {
+                                label: '成本节省贡献',
+                                data: [2.3, 1.9, 1.7, 1.5, 1.4, 1.1, 0.9],
+                                backgroundColor: [
+                                    chartColors.danger,
+                                    chartColors.danger,
+                                    chartColors.accent,
+                                    chartColors.accent,
+                                    chartColors.secondary,
+                                    chartColors.secondary,
+                                    chartColors.secondary
+                                ]
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '各环节降低10%成本对总成本的影响'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '总成本影响百分比 (%)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // 同行业对比基准图
+            const benchmarkChart = new Chart(
+                document.getElementById('benchmark-chart'),
+                {
+                    type: 'radar',
+                    data: {
+                        labels: ['物流成本率', '时效', '异常率', '现货率', '周转天数'],
+                        datasets: [
+                            {
+                                label: '我司',
+                                data: [65, 78, 82, 75, 60],
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderColor: chartColors.primary,
+                                pointBackgroundColor: chartColors.primary
+                            },
+                            {
+                                label: '行业均值',
+                                data: [70, 70, 75, 70, 70],
+                                backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                                borderColor: chartColors.gray,
+                                pointBackgroundColor: chartColors.gray
+                            },
+                            {
+                                label: '领先企业',
+                                data: [85, 90, 88, 92, 85],
+                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                borderColor: chartColors.secondary,
+                                pointBackgroundColor: chartColors.secondary
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
+        // 更新图表样式以适应暗色/浅色模式
+        function updateChartStyles() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#E5E7EB' : '#4B5563';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+            
+            // 重新渲染所有图表
+            Chart.instances.forEach(chart => {
+                chart.update();
+            });
+        }
+
+        // 页面加载完成后初始化图表
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化图表
+            initCharts();
+            
+            // 应用当前主题样式到图表
+            updateChartStyles();
+        });
+    </script>
+</body>
+</html>
